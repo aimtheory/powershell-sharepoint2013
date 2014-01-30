@@ -10,11 +10,11 @@ $domain_admin = "iarossi"
 $domain_admin_pw = "Welcome123!"
 
 # SQL Server variables
-$SQL_Server_hostname = ""
+$SQL_Server_hostname = "SQL-5SFTR28QCXN"
 $SQL_Server_ip = "10.115.59.195"
-$SQL_Server_port = ""
-$SQL_Server_user = ""
-$SQL_Server_pw = ""
+$SQL_Server_port = "1433"
+$SQL_Server_user = "sa"
+$SQL_Server_pw = "Welcome123!"
 $SQL_Server_instance = "SQL-5SFTR28QCXN\MSSQLSERVER"
 
 $pid_key = "NQTMW-K63MQ-39G6H-B2CH9-FRDWJ"
@@ -109,7 +109,7 @@ Foreach $account in $accounts.keys) {
         -AccountPassword $account.password `
         -Enabled $true `
         -PasswordNeverExpires $true `
-        -Path 'CN=Users,DC=$($domain),DC=$($domain_ext)'"
+        -Path 'CN=Domain Admins,DC=$($domain),DC=$($domain_ext)'"
     
     # Create the user account as the domain admin
     Invoke-Command `
