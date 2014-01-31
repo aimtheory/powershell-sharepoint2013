@@ -58,14 +58,18 @@ msiexec.exe /i "C:\SHAREPT\7zip-x64.msi" /qn /norestart
 # Copy and extract Sharepoint image
 Copy-Item Z:\\Microsoft\Sharepoint\2013\SharePointServer_x64_en-us.img $files_path\SharePointServer_x64_en-us.img
 Start-Process "C:\Program Files\7-Zip\7z.exe" `
-    -ArgumentList "x C:\SHAREPT\SharePointServer_x64_en-us.img" `
+    -ArgumentList "x C:\SHAREPT\SharePointServer_x64_en-us.img -o$($files_path)\SP2013Installer" `
     -PassThru `
     -Wait
+
+# Copy the config file
+$config_path = "$($files_path)\config.xml"
+
+Copy-Item Z:\\Microsoft\Sharepoint\2013\config.xml $config_path
 
 ########################################
 # Install Sharepoint
 ########################################
-$config_path = "$($files_path)\config.xml"
 
 # Write the PID key into the config.xml file 
 [xml]$configXML = Get-Content $config_path
@@ -75,7 +79,7 @@ $configXML.Save($config_path)
 # Run the setup and wait for it to end 
 Start-Process `
     -FilePath "$($files_path)\SP2013Installer\setup.exe" `
-    -ArgumentList "/config $($files_path)\config.xml" `
+    -ArgumentList "/config $($config_path)" `
     -PassThru `
     -Wait
 
@@ -97,10 +101,10 @@ Foreach ($account in $accounts.keys) {
 }
 
 # Establish the domain admin credentials to create the AD accounts
-$domain_admin_cred = New-Object System.Management.Automation.PSCredential -ArgumentList @($domain_admin,(ConvertTo-SecureString -String $domain_admin_pw -AsPlainText -Force))
+$domain_admin_cred = New-Object System.Management.Automation.PSCredential -ArgumentList @("$($domain)\$($domain_admin)",(ConvertTo-SecureString -String $domain_admin_pw -AsPlainText -Force))
 
 # Create the farm accounts in the domain
-Foreach $account in $accounts.keys) {
+Foreach ($account in $accounts.keys) {
     # Create the new user command
     $new_user_cmd = "New-ADUser `
         -SamAccountName $account.username `
@@ -113,8 +117,8 @@ Foreach $account in $accounts.keys) {
     
     # Create the user account as the domain admin
     Invoke-Command `
+        -ComputerName localhost `
         -Credential $domain_admin_cred `
-        -ComputerName localhost
         -ScriptBlock { $new_user_cmd }
 }
 
